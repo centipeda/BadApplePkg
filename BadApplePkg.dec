@@ -1,0 +1,18 @@
+## @file BadApplePkg.dec
+
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = BadApplePkg
+  PACKAGE_GUID                   = F4C57272-F8E3-46D9-B6BE-F7ACAA96B2D7
+  PACKAGE_VERSION                = 1.02
+
+[Includes]
+  Include
+
+[LibraryClasses]
+
+[Guids]
+
+[Protocols]
+
+[PcdsFeatureFlag]

@@ -1,0 +1,34 @@
+## @file
+#  Bad Apple!! but it's a UEFI application
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001B
+  BASE_NAME                      = BadApple
+  FILE_GUID                      = 506822FE-8064-4EE9-A79A-06B9BB746AEF
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = BadAppleMain
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64 EBC
+#
+
+[Sources]
+  BadApple.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+
+[Guids]
+  gEfiFileInfoGuid
+
+[Protocols]
+  gEfiSimpleFileSystemProtocolGuid
+  gEfiGraphicsOutputProtocolGuid
