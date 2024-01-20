@@ -1,3 +1,7 @@
+'''
+Downscale video feed to 1-bit grayscale and compress with run-length encoding.
+'''
+
 import ffmpeg
 import struct
 import os.path
@@ -6,8 +10,9 @@ import shutil
 from multiprocessing import Pool
 from PIL import Image
 
+CORES = 12
 INPUT_FILE = 'badapple.webm'
-FRAMES_FILE = 'mount/frames_full.bin'
+FRAMES_FILE = 'BadApple.bin'
 FRAMES_DIR = 'frames'
 FRAME_WIDTH = 480
 FRAME_HEIGHT = 360
@@ -19,6 +24,7 @@ def extract_compressed_frame(frame_filename):
         Image.open(os.path.join(FRAMES_DIR, frame_filename), mode='r').getdata()
     )
 
+    # Perform basic run-length code (1 byte value, 4 bytes length)
     runs = 0
     max_run_length = 65535
     compressed_frame = bytearray()
@@ -41,11 +47,11 @@ def extract_compressed_frame(frame_filename):
         compressed_frame.extend(struct.pack('<BH', frame[index-1], run_length))
         runs += 1
 
+    # Encode number of runs in frame.
     full_frame = bytearray()
     full_frame.extend(struct.pack('<H', runs))
     full_frame.extend(compressed_frame)
-
-    return (frame_filename, full_frame)
+    return full_frame
 
 # Extract frame data.
 if os.path.exists(FRAMES_DIR):
@@ -60,13 +66,13 @@ os.mkdir(FRAMES_DIR)
 )
 
 # Compress frame data.
-with Pool(12) as p:
+with Pool(CORES) as p:
     frame_paths = sorted(os.listdir(FRAMES_DIR))
-    frames = sorted(p.map(extract_compressed_frame, frame_paths), key=lambda f: f[0])
+    frames = p.map(extract_compressed_frame, frame_paths)
 
 # Save compressed frame data.
 with open(FRAMES_FILE, 'wb') as frames_file:
-    for frame_path,frame_data in frames:
+    for frame_data in frames:
         frames_file.write(frame_data)
 
 # Clean up.
