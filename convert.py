@@ -24,7 +24,7 @@ def extract_compressed_frame(frame_filename):
         Image.open(os.path.join(FRAMES_DIR, frame_filename), mode='r').getdata()
     )
 
-    # Perform basic run-length code (1 byte value, 4 bytes length)
+    # Perform basic run-length code (1 byte value, 2 bytes length)
     runs = 0
     max_run_length = 65535
     compressed_frame = bytearray()
@@ -66,6 +66,7 @@ os.mkdir(FRAMES_DIR)
 )
 
 # Compress frame data.
+print('Extracting...')
 with Pool(CORES) as p:
     frame_paths = sorted(os.listdir(FRAMES_DIR))
     frames = p.map(extract_compressed_frame, frame_paths)
