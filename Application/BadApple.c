@@ -18,20 +18,11 @@
 #include <Protocol/GraphicsOutput.h>
 #include <Protocol/SimpleFileSystem.h>
 
-// #define QEMU
-#ifdef QEMU
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 800
-#else
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
-#endif
-
 #define FRAME_HEIGHT 360
 #define FRAME_WIDTH 480
 #define PIXELS (FRAME_HEIGHT * FRAME_WIDTH)
-#define FRAME_OFFSET_Y ((SCREEN_HEIGHT - FRAME_HEIGHT) / 2)
-#define FRAME_OFFSET_X ((SCREEN_WIDTH - FRAME_WIDTH) / 2)
+#define FRAME_OFFSET_Y ((ScreenHeight - FRAME_HEIGHT) / 2)
+#define FRAME_OFFSET_X ((ScreenWidth - FRAME_WIDTH) / 2)
 #define FRAME_STALL 26500 // 30fps?
 
 #define BLACK_PIXEL ((EFI_GRAPHICS_OUTPUT_BLT_PIXEL) { .Red = 0, .Blue = 0, .Green = 0 })
@@ -178,8 +169,11 @@ BadAppleMain (
         return Status;
     }
 
+    UINTN ScreenWidth = Screen->Mode->Info->HorizontalResolution;
+    UINTN ScreenHeight = Screen->Mode->Info->VerticalResolution;
+
     EFI_GRAPHICS_OUTPUT_BLT_PIXEL *ScreenBuffer = NULL;
-    Status = gBS->AllocatePool(EfiBootServicesData, sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL) * SCREEN_HEIGHT * SCREEN_WIDTH, (VOID **)&ScreenBuffer);
+    Status = gBS->AllocatePool(EfiBootServicesData, sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL) * ScreenHeight * ScreenWidth, (VOID **)&ScreenBuffer);
     if(Status) {
         return Status;
     }
@@ -190,8 +184,8 @@ BadAppleMain (
         return Status;
     }
 
-    ZeroMem(ScreenBuffer, sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL) * SCREEN_HEIGHT * SCREEN_WIDTH);
-    Status = Screen->Blt(Screen, ScreenBuffer, EfiBltVideoToBltBuffer, 0, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+    ZeroMem(ScreenBuffer, sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL) * ScreenHeight * ScreenWidth);
+    Status = Screen->Blt(Screen, ScreenBuffer, EfiBltVideoToBltBuffer, 0, 0, 0, 0, ScreenWidth, ScreenHeight, 0);
 
     UINT8 *Video = NULL;
     UINTN VideoSize = 0;
@@ -227,12 +221,12 @@ BadAppleMain (
         // Copy pixels line-by-line.
         for(UINTN FY = 0; FY < FRAME_HEIGHT; FY++) {
             CopyMem(
-                ScreenBuffer + ((FY + FRAME_OFFSET_Y) * SCREEN_WIDTH) + FRAME_OFFSET_X,
+                ScreenBuffer + ((FY + FRAME_OFFSET_Y) * ScreenWidth) + FRAME_OFFSET_X,
                 FrameBuffer + (FY * FRAME_WIDTH),
                 FRAME_WIDTH * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL));
         }
 
-        Status = Screen->Blt(Screen, ScreenBuffer, EfiBltBufferToVideo, FRAME_OFFSET_X, FRAME_OFFSET_Y, FRAME_OFFSET_X, FRAME_OFFSET_Y, FRAME_WIDTH, FRAME_HEIGHT, sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL) * SCREEN_WIDTH);
+        Status = Screen->Blt(Screen, ScreenBuffer, EfiBltBufferToVideo, FRAME_OFFSET_X, FRAME_OFFSET_Y, FRAME_OFFSET_X, FRAME_OFFSET_Y, FRAME_WIDTH, FRAME_HEIGHT, sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL) * ScreenWidth);
         if(EFI_ERROR(Status)) {
             goto fail;
         }
@@ -249,7 +243,7 @@ fail:
         Print(L"Failure: %d\n", Status);
     }
 
-    Status = Screen->Blt(Screen, ScreenBuffer, EfiBltVideoFill, 0, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+    Status = Screen->Blt(Screen, ScreenBuffer, EfiBltVideoFill, 0, 0, 0, 0, ScreenWidth, ScreenHeight, 0);
 
     for(;;) {
         gBS->Stall(1000000);

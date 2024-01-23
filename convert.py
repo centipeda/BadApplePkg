@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 '''
 Downscale video feed to 1-bit grayscale and compress with run-length encoding.
 '''

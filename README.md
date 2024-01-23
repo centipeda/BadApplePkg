@@ -33,8 +33,6 @@ python3 convert.py
 
 ### Building EFI Application
 
-**NOTE**: Modify the definition of `SCREEN_HEIGHT` and `SCREEN_WIDTH` in `BadApple.c` as needed for target hardware.
-
 ```
 cd edk2
 source edksetup.sh
